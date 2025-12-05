@@ -21,9 +21,9 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.DrivetrainConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.FlyingCircuitUtils;
-import frc.robot.TunerConstants;
 import frc.robot.subsystems.vision.SingleTagCam;
 import frc.robot.subsystems.vision.SingleTagPoseObservation;
 import frc.robot.subsystems.vision.VisionIO;
@@ -61,13 +61,6 @@ public class Drivetrain extends SubsystemBase {
      */
     double wheelbaseMeters = Units.inchesToMeters(21.75);
 
-    SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
-        new Translation2d(wheelbaseMeters / 2.0, trackwidthMeters / 2.0),
-        new Translation2d(wheelbaseMeters / 2.0, -trackwidthMeters / 2.0),
-        new Translation2d(-wheelbaseMeters / 2.0, trackwidthMeters / 2.0),
-        new Translation2d(-wheelbaseMeters / 2.0, -trackwidthMeters / 2.0)
-    );
-
  
     public Drivetrain(
         GyroIO gyroIO, 
@@ -103,7 +96,7 @@ public class Drivetrain extends SubsystemBase {
 
 
         fusedPoseEstimator = new SwerveDrivePoseEstimator(
-            swerveKinematics, 
+            DrivetrainConstants.swerveKinematics, 
             gyroInputs.robotYawRotation2d,
             getModulePositions(),
             new Pose2d(),
@@ -112,7 +105,7 @@ public class Drivetrain extends SubsystemBase {
         );
 
         wheelsOnlyPoseEstimator = new SwerveDrivePoseEstimator(
-            swerveKinematics,
+            DrivetrainConstants.swerveKinematics,
             gyroInputs.robotYawRotation2d,
             getModulePositions(), 
             new Pose2d());
@@ -121,7 +114,7 @@ public class Drivetrain extends SubsystemBase {
     }
     
     private void setModuleStates(SwerveModuleState[] desiredStates) {
-        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, TunerConstants.kSpeedAt12Volts);
+        SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, DrivetrainConstants.maxDesiredTeleopVelocityMetersPerSecond);
         for (SwerveModule mod : swerveModules) {
             mod.setDesiredState(desiredStates[mod.moduleIndex]);
         }
@@ -160,7 +153,7 @@ public class Drivetrain extends SubsystemBase {
      * @param closedLoop - Whether or not to used closed loop PID control to control the speed of the drive wheels.
     */
     public void robotOrientedDrive(ChassisSpeeds desiredChassisSpeeds) {
-        SwerveModuleState[] swerveModuleStates = swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+        SwerveModuleState[] swerveModuleStates = DrivetrainConstants.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
         setModuleStates(swerveModuleStates);
     }
 
@@ -178,7 +171,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     public ChassisSpeeds getFieldOrientedVelocity() {
-        ChassisSpeeds robotOrientedSpeeds = swerveKinematics.toChassisSpeeds(getModuleStates());
+        ChassisSpeeds robotOrientedSpeeds = DrivetrainConstants.swerveKinematics.toChassisSpeeds(getModuleStates());
         return ChassisSpeeds.fromRobotRelativeSpeeds(robotOrientedSpeeds, getPoseMeters().getRotation());
     }
 

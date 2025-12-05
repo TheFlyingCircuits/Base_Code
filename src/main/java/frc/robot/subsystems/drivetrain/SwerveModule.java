@@ -36,7 +36,6 @@ public class SwerveModule {
         return new SwerveModuleState(toConstrain.speedMetersPerSecond, Rotation2d.fromDegrees(constrainedDegrees));
     }
 
-    @SuppressWarnings("deprecation")
     public void setDesiredState(SwerveModuleState desiredState) {
         // Make sure the desired state's angle is in the range [-180, 180], so it can be appropriately
         // compared to the current angle from the CANCoder. We verified that you need constrainState()
@@ -46,6 +45,7 @@ public class SwerveModule {
             desiredState,
             Rotation2d.fromDegrees(inputs.angleAbsolutePositionDegrees)
         );
+        // System.out.println(desiredState.angle.getDegrees());
 
                 
         setDesiredStateNoOptimize(desiredState);
@@ -56,7 +56,7 @@ public class SwerveModule {
         desiredState = constrainState(desiredState); // constrain one more time after optimization just to be safe, because I'm unsure if optimization can ever pull the angle out of [-180, 180]
 
         io.setDriveVelocity(desiredState.speedMetersPerSecond);
-        io.setTurnAngle(desiredState.angle.getRotations());
+        io.setTurnAngle(desiredState.angle.getDegrees());
     }
 
 

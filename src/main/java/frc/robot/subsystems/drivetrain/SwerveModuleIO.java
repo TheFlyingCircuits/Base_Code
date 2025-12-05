@@ -10,6 +10,7 @@ public interface SwerveModuleIO {
         public double driveVelocityMetersPerSecond = 0.0;
         
         public double angleAbsolutePositionDegrees = 0.0;
+        public double targetAngleDegrees = 0.0;
 
         public double driveAppliedVoltage = 0.0;
         public double driveCurrent = 0.0;
@@ -19,7 +20,7 @@ public interface SwerveModuleIO {
 
     public default void setDriveVelocity(double velocityMetersPerSecond) {};
 
-    public default void setTurnAngle(double angleRotations) {};
+    public default void setTurnAngle(double angleDegrees) {};
 
 }
 

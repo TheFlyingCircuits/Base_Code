@@ -1,7 +1,5 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
-
 import java.util.Optional;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -12,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.ControllerConstants;
-import frc.robot.TunerConstants;
+import frc.robot.Constants.DrivetrainConstants;
 
 /**
  * A wrapper class for driver controls
@@ -71,7 +69,7 @@ public class HumanDriver {
         // adjust this power value for diffferences in how the robot handles (recommended between 1.5 and 3)
         // ^ old comment from original JoystickDrive command
         totalThrottle = Math.pow(totalThrottle, 3);
-        double desiredSpeed = totalThrottle * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+        double desiredSpeed = totalThrottle * DrivetrainConstants.maxDesiredTeleopVelocityMetersPerSecond;
 
         // Get desired rotation speed from right stick
         double angularThrottle = -controller.getRightX();
@@ -82,7 +80,7 @@ public class HumanDriver {
             angularThrottle = Math.signum(angularThrottle) * 1.0;
         }
         angularThrottle = Math.signum(angularThrottle) * Math.pow(Math.abs(angularThrottle), 3);
-        double desiredAngularSpeed = angularThrottle * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond) * TunerConstants.BackLeft.WheelRadius;
+        double desiredAngularSpeed = angularThrottle * DrivetrainConstants.maxDesiredTeleopAngularVelocityRadiansPerSecond;
 
         ChassisSpeeds requestedVelocity = new ChassisSpeeds();
         requestedVelocity.vxMetersPerSecond = desiredSpeed * Math.cos(angle);

@@ -28,11 +28,11 @@ public class RobotContainer {
         // if (RobotBase.isReal()) {
             drivetrain = new Drivetrain( 
                 new GyroIOPigeon(),
-                new SwerveModuleIOKraken(TunerConstants.FrontLeft), 
-                new SwerveModuleIOKraken(TunerConstants.FrontRight),
-                new SwerveModuleIOKraken(TunerConstants.BackLeft),
-                new SwerveModuleIOKraken(TunerConstants.BackRight),
-                new VisionIO() {}
+                new SwerveModuleIOKraken(0, 1, -0.377686, 0, "FL"), 
+                new SwerveModuleIOKraken(2, 3, 0.397705, 1, "FR"),
+                new SwerveModuleIOKraken(4, 5, 0.238281, 2, "BL"),
+                new SwerveModuleIOKraken(6, 7,  -0.370850, 3, "BR"),
+                new VisionIO() {} //VisionConstants.useNewSingleTagCodeFromBuckeye ? new VisionIO() {} : new VisionIOPhotonLib()
             );
         // }
         duncanController = duncan.getXboxController();
