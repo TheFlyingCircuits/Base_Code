@@ -2,13 +2,15 @@ package frc.robot.subsystems.drivetrain;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
-import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 
+import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.SwerveModuleConstants;
 import frc.robot.Constants.UniversalConstants;
 import frc.robot.VendorWrappers.Kraken;
@@ -17,10 +19,9 @@ public class SwerveModuleIOKraken implements SwerveModuleIO {
 
     private double desiredAngleDeg = 0.0;
 
-    private final PositionTorqueCurrentFOC positionTorqueCurrentRequest =
-      new PositionTorqueCurrentFOC(0.0).withSlot(0);
-    private final VelocityTorqueCurrentFOC velocityTorqueCurrentRequest =
-      new VelocityTorqueCurrentFOC(0.0).withSlot(1);
+
+    final PositionVoltage positionRequest = new PositionVoltage(0).withSlot(0);
+    final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(1);
 
      private CANcoder absoluteEncoder;
     private Kraken angleMotor;
@@ -48,9 +49,9 @@ public class SwerveModuleIOKraken implements SwerveModuleIO {
         /* Angle Motor Config */
         angleMotor = new Kraken(name+"Steer", angleMotorID, UniversalConstants.canivoreName);
         if(isAngleMotorOnTop) {
-            configAngleMotor(InvertedValue.CounterClockwise_Positive);
+            configAngleMotor(InvertedValue.CounterClockwise_Positive,cancoderID);
         } else {
-            configAngleMotor(InvertedValue.Clockwise_Positive);
+            configAngleMotor(InvertedValue.Clockwise_Positive,cancoderID);
         }
 
         /* Drive Motor Config */
@@ -76,27 +77,30 @@ public class SwerveModuleIOKraken implements SwerveModuleIO {
         config.MotorOutput.Inverted = invertedValue;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.CurrentLimits.StatorCurrentLimit = 45; // re-determined after firmware upgrade to prevent wheel slip. Feels pretty low though
-        config.CurrentLimits.StatorCurrentLimitEnable = true;
 
         config.Slot1.kS = 0.2383; 
         config.Slot1.kV = 0.12437965961;
         config.Slot1.kP = 0.0;
-        config.Slot1.kI = 0.0; 
-        config.Slot1.kD = 0.0; 
+        config.Slot1.kI = 0.0;
+        config.Slot1.kD = 0.0;
         driveMotor.applyConfig(config);
     }
 
-    private void configAngleMotor(InvertedValue invertedValue) {
+    private void configAngleMotor(InvertedValue invertedValue, int cancoderID) {
         TalonFXConfiguration config = new TalonFXConfiguration();
         config.MotorOutput.Inverted = invertedValue;
         config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         config.CurrentLimits.StatorCurrentLimit = 60;
         config.CurrentLimits.StatorCurrentLimitEnable = true;
 
-        config.Slot0.kS = 0.0; 
+        config.Slot0.kS = 0.0;
         config.Slot0.kP = 28.8;
         config.Slot0.kI = 0.0; 
         config.Slot0.kD = 0.0;
+        config.Feedback.FeedbackRemoteSensorID = cancoderID;
+        config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+        config.Feedback.SensorToMechanismRatio = 1;
+        config.ClosedLoopGeneral.ContinuousWrap = true;
         config.TorqueCurrent.withPeakForwardTorqueCurrent(10)
       .withPeakReverseTorqueCurrent(-10);
         angleMotor.applyConfig(config);
@@ -104,7 +108,6 @@ public class SwerveModuleIOKraken implements SwerveModuleIO {
 
     @Override
     public void updateInputs(SwerveModuleIOInputs inputs) {
-
         inputs.drivePositionMeters = driveMotor.getPosition().getValueAsDouble() * (SwerveModuleConstants.driveGearReduction * SwerveModuleConstants.wheelCircumferenceMeters);
         inputs.driveVelocityMetersPerSecond = driveMotor.getVelocity().getValueAsDouble() * (SwerveModuleConstants.driveGearReduction * SwerveModuleConstants.wheelCircumferenceMeters);
         inputs.angleAbsolutePositionDegrees = absoluteEncoder.getAbsolutePosition().getValueAsDouble()*360;
@@ -116,16 +119,17 @@ public class SwerveModuleIOKraken implements SwerveModuleIO {
 
     @Override
     public void setDriveVelocity(double velocityMetersPerSecond) {
-        double velocityRotationsPerSecond = velocityMetersPerSecond/(SwerveModuleConstants.driveGearReduction * SwerveModuleConstants.wheelCircumferenceMeters);
+        double velocityRotationsPerSecondDriveWheels = velocityMetersPerSecond/SwerveModuleConstants.wheelCircumferenceMeters;
+        double velocityRotationsPerSecondDriveMotor = velocityRotationsPerSecondDriveWheels/SwerveModuleConstants.driveGearReduction;
         System.out.println(velocityMetersPerSecond + "meters");
-        System.out.println(velocityRotationsPerSecond + "rotations");
-        driveMotor.setControl(velocityTorqueCurrentRequest.withVelocity(velocityRotationsPerSecond));
+        System.out.println(velocityRotationsPerSecondDriveMotor + "rotations");
+        driveMotor.setControl(velocityRequest.withVelocity(velocityRotationsPerSecondDriveMotor));
     }
 
     @Override
     public void setTurnAngle(double angleDegrees) {
-        // desiredAngleDeg = angleDegrees;
-        // angleMotor.setControl(positionTorqueCurrentRequest.withPosition(Units.degreesToRotations(angleDegrees)));
+        desiredAngleDeg = angleDegrees;
+        angleMotor.setControl(positionRequest.withPosition(Units.degreesToRotations(angleDegrees)));
     }
     
 }
