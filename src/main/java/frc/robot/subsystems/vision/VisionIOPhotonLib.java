@@ -3,6 +3,7 @@ package frc.robot.subsystems.vision;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
@@ -84,18 +85,33 @@ public class VisionIOPhotonLib implements VisionIO {
 
     // Tag accepting funcions
 
-    public void acceptAllTags() {
+    public static void acceptAllTags() {
         for(int i = 0; i < wantedAcceptedTags.length; i++) {
             wantedAcceptedTags[i] = true;
         }
     }
 
-    public void onlyAcceptOneTag(int tagID) {
+
+    public static void acceptNoTags() {
+        for(int i = 0; i < wantedAcceptedTags.length; i++) {
+            wantedAcceptedTags[i] = false;
+        }
+    }
+    
+    public static void onlyAcceptOneTag(int tagID) {
         for(int i = 0; i < wantedAcceptedTags.length; i++) {
             if(i == tagID) {
                 wantedAcceptedTags[i] = true;
             } else {
                 wantedAcceptedTags[i] = false;
+            }
+        }
+    }
+
+    public static void editSpecificTagAcceptance(Map<Integer, Boolean> tagsStatuses) {
+        for(int i = 0; i < wantedAcceptedTags.length; i++) {
+            if(tagsStatuses.containsKey(i)) {
+                wantedAcceptedTags[i] = tagsStatuses.get(i);
             }
         }
     }

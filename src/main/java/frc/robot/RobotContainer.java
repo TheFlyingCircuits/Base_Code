@@ -8,12 +8,14 @@ import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.subsystems.HumanDriver;
 import frc.robot.subsystems.drivetrain.Drivetrain;
 import frc.robot.subsystems.drivetrain.GyroIOPigeon;
 import frc.robot.subsystems.drivetrain.SwerveModuleIOKraken;
 import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonLib;
 
 
 public class RobotContainer {
@@ -40,7 +42,12 @@ public class RobotContainer {
         setDefaultCommands();
     }
 
-    private void configureBindings() {}
+    private void configureBindings() {
+        duncanController.y().onTrue(reSeedRobotPose());
+        duncanController.a().whileTrue(new InstantCommand(() -> VisionIOPhotonLib.acceptAllTags()));
+        duncanController.x().whileTrue(new InstantCommand(() -> VisionIOPhotonLib.acceptNoTags()));
+        duncanController.b().whileTrue(new InstantCommand(() -> VisionIOPhotonLib.onlyAcceptOneTag(10)));
+    }
 
     public Command getAutonomousCommand() {
         return Commands.print("No autonomous command configured");
@@ -57,5 +64,10 @@ public class RobotContainer {
             Logger.recordOutput("drivetrain/runningDefaultCommand", false);
         }).withName("driverFullyControlDrivetrain");
     }
+
+    private Command reSeedRobotPose() {return Commands.run(() -> {
+        drivetrain.fullyTrustVisionNextPoseUpdate();
+        drivetrain.allowTeleportsNextPoseUpdate();
+    }).until(drivetrain::seesAcceptableTag).ignoringDisable(true);}
 
 }
