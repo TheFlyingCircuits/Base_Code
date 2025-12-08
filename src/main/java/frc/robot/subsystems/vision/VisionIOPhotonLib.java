@@ -31,11 +31,16 @@ public class VisionIOPhotonLib implements VisionIO {
     List<PhotonCamera> tagCameras;
     List<PhotonPoseEstimator> poseEstimators;
 
+    public static Boolean[] wantedAcceptedTags = new Boolean[23]; 
+    // tag 0 does not exist and there is 22 tags but list is 23 so I can call tag 22 and it is elemnt 22 in the list
+
     // PhotonCamera intakeCamera;
 
     public VisionIOPhotonLib() {
 
         // intakeCamera = new PhotonCamera("intakeCam");
+
+        acceptAllTags();
 
         System.gc();
         
@@ -75,6 +80,24 @@ public class VisionIOPhotonLib implements VisionIO {
             );
         }
 
+    }
+
+    // Tag accepting funcions
+
+    public void acceptAllTags() {
+        for(int i = 0; i < wantedAcceptedTags.length; i++) {
+            wantedAcceptedTags[i] = true;
+        }
+    }
+
+    public void onlyAcceptOneTag(int tagID) {
+        for(int i = 0; i < wantedAcceptedTags.length; i++) {
+            if(i == tagID) {
+                wantedAcceptedTags[i] = true;
+            } else {
+                wantedAcceptedTags[i] = false;
+            }
+        }
     }
 
     /**

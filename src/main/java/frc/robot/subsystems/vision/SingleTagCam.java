@@ -21,7 +21,6 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants;
-
 import frc.robot.Constants.UniversalConstants;
 import frc.robot.Constants.VisionConstants;
 
@@ -83,20 +82,23 @@ public class SingleTagCam {
 
         for (PhotonPipelineResult frame : freshFrames) {
             for (PhotonTrackedTarget tag : frame.targets) {
-                Pose3d robotPose = this.getRobotPoseFromSingleTag(tag);
-                double timestamp = frame.getTimestampSeconds();
                 int tagID = tag.fiducialId;
-                double tagToCamDistance = tag.getBestCameraToTarget().getTranslation().getNorm();
-                double ambiguity = tag.poseAmbiguity;
+                // checks if we want to accept the tag based off the accepted tags list
+                if(VisionIOPhotonLib.wantedAcceptedTags[tagID]) {
+                    Pose3d robotPose = this.getRobotPoseFromSingleTag(tag);
+                    double timestamp = frame.getTimestampSeconds();
+                    double tagToCamDistance = tag.getBestCameraToTarget().getTranslation().getNorm();
+                    double ambiguity = tag.poseAmbiguity;
 
-                SingleTagPoseObservation poseObservation = new SingleTagPoseObservation(cam.getName(), robotPose, timestamp, tagID, tagToCamDistance, ambiguity);
-                output.add(poseObservation);
+                    SingleTagPoseObservation poseObservation = new SingleTagPoseObservation(cam.getName(), robotPose, timestamp, tagID, tagToCamDistance, ambiguity);
+                    output.add(poseObservation);
 
-                // advantage scope viz
-                justRobotPoses.add(robotPose);
-                Pose3d camPoseOnfield = robotPose.plus(new Transform3d(camLocation_robotFrame, camOrientation_robotFrame));
-                Pose3d tagPoseOnField = VisionConstants.aprilTagFieldLayout.getTagPose(tagID).get();
-                sightlines.addAll(Arrays.asList(camPoseOnfield, tagPoseOnField, camPoseOnfield));
+                    // advantage scope viz
+                    justRobotPoses.add(robotPose);
+                    Pose3d camPoseOnfield = robotPose.plus(new Transform3d(camLocation_robotFrame, camOrientation_robotFrame));
+                    Pose3d tagPoseOnField = VisionConstants.aprilTagFieldLayout.getTagPose(tagID).get();
+                    sightlines.addAll(Arrays.asList(camPoseOnfield, tagPoseOnField, camPoseOnfield));
+                }
 
             }
         }
