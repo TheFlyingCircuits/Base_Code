@@ -121,8 +121,7 @@ public class SwerveModuleIOKraken implements SwerveModuleIO {
     public void setDriveVelocity(double velocityMetersPerSecond) {
         double velocityRotationsPerSecondDriveWheels = velocityMetersPerSecond/SwerveModuleConstants.wheelCircumferenceMeters;
         double velocityRotationsPerSecondDriveMotor = velocityRotationsPerSecondDriveWheels/SwerveModuleConstants.driveGearReduction;
-        System.out.println(velocityMetersPerSecond + "meters");
-        System.out.println(velocityRotationsPerSecondDriveMotor + "rotations");
+
         driveMotor.setControl(velocityRequest.withVelocity(velocityRotationsPerSecondDriveMotor));
     }
 

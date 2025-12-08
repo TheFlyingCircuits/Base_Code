@@ -84,11 +84,11 @@ public final class Constants {
          * <br>
          * This is a measure of how fast the robot will be able to drive in a straight line, based off of the empirical free speed of the drive Krakens.
          */
-        public static final double maxAchievableVelocityMetersPerSecond = 1.0;
+        // public static final double maxAchievableVelocityMetersPerSecond = 1.0;
         public static final double krakenFreeSpeedRPM = 5800;
         public static final double krakenFreeSpeedRotationsPerSecond = krakenFreeSpeedRPM / 60.;
-        // public static final double maxAchievableVelocityMetersPerSecond = krakenFreeSpeedRotationsPerSecond *
-        //     SwerveModuleConstants.driveGearReduction * SwerveModuleConstants.wheelCircumferenceMeters; // ~5.23 using a theoretical wheel radius of 2 inches m/s
+        public static final double maxAchievableVelocityMetersPerSecond = krakenFreeSpeedRotationsPerSecond *
+            SwerveModuleConstants.driveGearReduction * SwerveModuleConstants.wheelCircumferenceMeters; // ~5.23 using a theoretical wheel radius of 2 inches m/s
                                                                                                        // ~5.06 when adding 1/16 of an inch of wheel sink into the carpet.
                                                                                                        // ~5.10 using an emperical measurement of wheel radius on fresh wheels.
                                                                                                        // Actual top speed based on testing is ~4.7 m/s
