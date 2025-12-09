@@ -82,6 +82,9 @@ public class SingleTagCam {
 
         for (PhotonPipelineResult frame : freshFrames) {
             for (PhotonTrackedTarget tag : frame.targets) {
+                if(VisionIOPhotonLib.wantedAcceptedTags[0] == null) {
+                    VisionIOPhotonLib.acceptAllTags();
+                }
                 int tagID = tag.fiducialId;
                 // checks if we want to accept the tag based off the accepted tags list
                 if(VisionIOPhotonLib.wantedAcceptedTags[tagID]) {

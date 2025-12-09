@@ -6,6 +6,11 @@ import java.util.List;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.util.DriveFeedforwards;
+import com.pathplanner.lib.util.swerve.SwerveSetpoint;
+import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
+
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -61,6 +66,8 @@ public class Drivetrain extends SubsystemBase {
      */
     double wheelbaseMeters = Units.inchesToMeters(21.75);
 
+    private final SwerveSetpointGenerator setpointGenerator;
+    private SwerveSetpoint previousSetpoint;
  
     public Drivetrain(
         GyroIO gyroIO, 
@@ -89,7 +96,6 @@ public class Drivetrain extends SubsystemBase {
         //corresponds to x, y, and rotation standard deviations (meters and radians)
         Matrix<N3, N1> stateStdDevs = VecBuilder.fill(0.1, 0.1, 0.005);
 
-        
         //corresponds to x, y, and rotation standard deviations (meters and radians)
         //these values are automatically recalculated periodically depending on distance
         Matrix<N3, N1> visionStdDevs = VecBuilder.fill(0., 0., 0.);
@@ -110,8 +116,26 @@ public class Drivetrain extends SubsystemBase {
             getModulePositions(), 
             new Pose2d());
 
- 
+        RobotConfig config;
+        try{
+          config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+          // Handle exception as needed
+          config = null;
+          e.printStackTrace();
+        }
+
+        setpointGenerator = new SwerveSetpointGenerator(
+            config, // The robot configuration. This is the same config used for generating trajectories and running path following commands.
+            Units.rotationsToRadians(10.0) // The max rotation velocity of a swerve module in radians per second. This should probably be stored in your Constants file
+        );
+
+        // Initialize the previous setpoint to the robot's current speeds & module states
+        ChassisSpeeds currentSpeeds = getRobotRelativeVelocityMPS(); // Method to get current robot-relative chassis speeds
+        SwerveModuleState[] currentStates = getModuleStates(); // Method to get the current swerve module states
+        previousSetpoint = new SwerveSetpoint(currentSpeeds, currentStates, DriveFeedforwards.zeros(config.numModules));
     }
+ 
     
     private void setModuleStates(SwerveModuleState[] desiredStates) {
         SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, DrivetrainConstants.maxDesiredTeleopVelocityMetersPerSecond);
@@ -119,7 +143,6 @@ public class Drivetrain extends SubsystemBase {
             mod.setDesiredState(desiredStates[mod.moduleIndex]);
         }
     }
-
 
     public SwerveModulePosition[] getModulePositions() {
         SwerveModulePosition[] swervePositions = new SwerveModulePosition[4];
@@ -144,7 +167,6 @@ public class Drivetrain extends SubsystemBase {
 
     //**************** DRIVING ****************//
 
-
     /**
      * Drives the robot based on a desired ChassisSpeeds.
      * <p>
@@ -153,8 +175,15 @@ public class Drivetrain extends SubsystemBase {
      * @param closedLoop - Whether or not to used closed loop PID control to control the speed of the drive wheels.
     */
     public void robotOrientedDrive(ChassisSpeeds desiredChassisSpeeds) {
-        SwerveModuleState[] swerveModuleStates = DrivetrainConstants.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
-        setModuleStates(swerveModuleStates);
+        // SwerveModuleState[] swerveModuleStates = DrivetrainConstants.swerveKinematics.toSwerveModuleStates(desiredChassisSpeeds);
+        // Note: it is important to not discretize speeds before or after
+        // using the setpoint generator, as it will discretize them for you
+        previousSetpoint = setpointGenerator.generateSetpoint(
+            previousSetpoint, // The previous setpoint
+            desiredChassisSpeeds, // The desired target speeds
+            0.02 // The loop time of the robot code, in seconds
+        );
+        setModuleStates(previousSetpoint.moduleStates());
     }
 
     /**
@@ -173,6 +202,10 @@ public class Drivetrain extends SubsystemBase {
     public ChassisSpeeds getFieldOrientedVelocity() {
         ChassisSpeeds robotOrientedSpeeds = DrivetrainConstants.swerveKinematics.toChassisSpeeds(getModuleStates());
         return ChassisSpeeds.fromRobotRelativeSpeeds(robotOrientedSpeeds, getPoseMeters().getRotation());
+    }
+
+    public ChassisSpeeds getRobotRelativeVelocityMPS() {
+        return DrivetrainConstants.swerveKinematics.toChassisSpeeds(getModuleStates());
     }
 
     public double getSpeedMetersPerSecond() {
@@ -238,7 +271,6 @@ public class Drivetrain extends SubsystemBase {
         Rotation2d forwardNow = getPoseMeters().getRotation();
         this.setOrientation(FlyingCircuitUtils.getAllianceDependentValue(forwardOnRed, forwardOnBlue, forwardNow));
     }
-
 
     public void fullyTrustVisionNextPoseUpdate() {
         this.fullyTrustVisionNextPoseUpdate = true;
@@ -342,5 +374,4 @@ public class Drivetrain extends SubsystemBase {
 
         // this.compareCamPoses();
     }
-
 }
