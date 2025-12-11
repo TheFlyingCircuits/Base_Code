@@ -131,4 +131,14 @@ public class SwerveModuleIOKraken implements SwerveModuleIO {
         angleMotor.setControl(positionRequest.withPosition(Units.degreesToRotations(angleDegrees)));
     }
     
+    
+    @Override
+    public void setDriveVoltage(double volts) {
+        driveMotor.setVoltage(volts);
+    }
+
+    @Override
+    public void setAngleVoltage(double volts) {
+        angleMotor.setVoltage(volts);
+    }
 }

@@ -12,9 +12,9 @@ public record SingleTagPoseObservation (String camName, Pose3d robotPose, double
         double slopeStdDevMeters_PerMeter = 0.003;
 
         if (tagToCamMeters < 1.5) {
-            slopeStdDevMeters_PerMeter = 0.0;
+            slopeStdDevMeters_PerMeter = 0.005;
         } else if(tagToCamMeters < 2.5) {
-            slopeStdDevMeters_PerMeter = 0.001;
+            slopeStdDevMeters_PerMeter = 0.002;
         }
 
         return VecBuilder.fill(

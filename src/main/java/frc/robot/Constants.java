@@ -263,4 +263,32 @@ public final class Constants {
 
     }
 
+    public final static class LEDConstants {
+        public final static int ledPWMPort = 0;
+
+        //total number of leds
+        public final static int ledsPerStrip = 60;
+
+        public final static double stripLengthMeters = 1.0;
+
+        public final static double ledsPerMeter = (1.0 * ledsPerStrip) / stripLengthMeters;
+
+        public final static double metersPerLed = 1/ledsPerMeter;
+
+        /**
+         * Hues for specific colors
+         * Values use the openCV convention where hue ranges from [0, 180)
+         */
+        public final static class Hues {
+
+            public final static int orangeSignalLight = 4;
+            public final static int blueBumpers = 114;
+            public final static int redBumpers = 0;
+            public final static int redTrafficLight = 0;//0;
+            public final static int greenTrafficLight = 40;//60;
+            public final static int betweenBlueAndRed = 150; // a purple/pink that's between blue and red.
+
+        }
+    }
+
 }

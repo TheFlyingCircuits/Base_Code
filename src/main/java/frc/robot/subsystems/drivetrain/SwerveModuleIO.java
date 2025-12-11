@@ -22,5 +22,9 @@ public interface SwerveModuleIO {
 
     public default void setTurnAngle(double angleDegrees) {};
 
-}
+    public default void setDriveVoltage(double volts) {};
+    
+    public default void setAngleVoltage(double volts) {};
 
+
+}
