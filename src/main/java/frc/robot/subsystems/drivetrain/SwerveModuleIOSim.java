@@ -18,6 +18,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     double driveMomentOfInertia = 0.2;
     double driveVelocityMetersPerSecond = 0.0;
     double angleAbsolutePositionDegrees= 0.0;
+    double targetAngleDeg = 0.0;
     // dummy values needs to be changed!!!!
 
     private PIDController drivePID = new PIDController(
@@ -79,6 +80,8 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         inputs.angleAbsolutePositionDegrees = 
             MathUtil.inputModulus(inputs.angleAbsolutePositionDegrees, -180, 180);
 
+        inputs.targetAngleDegrees = targetAngleDeg;
+
         driveVelocityMetersPerSecond = inputs.driveVelocityMetersPerSecond;
         angleAbsolutePositionDegrees = inputs.angleAbsolutePositionDegrees;
     }
@@ -94,6 +97,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
     @Override
     public void setTurnAngle(double angleDegrees) {
+        targetAngleDeg = angleDegrees;
         setAngleVoltage(anglePID.calculate(angleAbsolutePositionDegrees, angleDegrees));
     }
 

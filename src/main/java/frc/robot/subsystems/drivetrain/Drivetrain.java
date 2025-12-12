@@ -356,6 +356,10 @@ public class Drivetrain extends SubsystemBase {
     @Override
     public void periodic() {
         gyroIO.updateInputs(gyroInputs);
+        if (gyroIO instanceof GyroIOSim) //calculates sim gyro
+            gyroIO.calculateYaw(getModulePositions());
+          
+
         visionIO.updateInputs(visionInputs);
         for (SwerveModule mod : swerveModules)
             mod.periodic();
